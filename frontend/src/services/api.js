@@ -6,7 +6,33 @@ const API_URL = 'http://localhost:3001/api';
 const api = axios.create({
   baseURL: API_URL,
   timeout: 10000,
-});
+}) ;
+
+// Add request interceptor for authentication if needed
+api.interceptors.request.use(
+  (config) => {
+    // You could add auth tokens here in a real app
+    return config;
+  },
+  (error) => {
+    return Promise.reject(error);
+  }
+);
+
+// Add response interceptor for error handling
+api.interceptors.response.use(
+  (response) => {
+    return response;
+  },
+  (error) => {
+    // Handle session timeouts or auth errors here
+    if (error.response && error.response.status === 401) {
+      // Handle unauthorized access
+      console.error('Authentication error');
+    }
+    return Promise.reject(error);
+  }
+);
 
 // Get popular videos for homepage
 export const getPopularVideos = async () => {
@@ -65,10 +91,46 @@ export const getCategoryVideos = async (categoryId) => {
   }
 };
 
+// Get user settings
+export const getSettings = async () => {
+  try {
+    const response = await api.get('/settings');
+    return response.data;
+  } catch (error) {
+    console.error('Error fetching settings:', error);
+    throw error;
+  }
+};
+
+// Save user settings
+export const saveSettings = async (settings) => {
+  try {
+    const response = await api.post('/settings/save', settings);
+    return response.data;
+  } catch (error) {
+    console.error('Error saving settings:', error);
+    throw error;
+  }
+};
+
+// Verify parent password
+export const verifyParentPassword = async (password) => {
+  try {
+    const response = await api.post('/auth/verify-parent', { password });
+    return response.data;
+  } catch (error) {
+    console.error('Error verifying password:', error);
+    throw error;
+  }
+};
+
 export default {
   getPopularVideos,
   searchVideos,
   getVideoDetails,
   getCategories,
-  getCategoryVideos
+  getCategoryVideos,
+  getSettings,
+  saveSettings,
+  verifyParentPassword
 };
